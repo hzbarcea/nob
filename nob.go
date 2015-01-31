@@ -1,47 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"github.com/codegangsta/cli"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 )
-
-type NobService struct {
-	Url                string
-	Username, Password string
-}
-
-func listBrokers(service NobService, filter string) string {
-	url := service.Url + "/brokers"
-	if filter != "" {
-		url += "?filter="
-		url += filter // hopefully the http object will encode it
-	}
-
-	req, err := http.NewRequest("GET", url, nil)
-	req.SetBasicAuth(service.Username, service.Password)
-
-	//	req.Header.Set("X-Custom-Header", "myvalue")
-	req.Header.Set("Accept", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-
-	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
-
-	return string(body)
-}
 
 func createNobService(c *cli.Context) (NobService, error) {
 	configFile := c.GlobalString("config")
@@ -113,7 +78,7 @@ func main() {
 							println("could not fetch broker list:", err)
 							return
 						}
-						listBrokers(service, c.String("filter"))
+						ListBrokers(service, c.String("filter"))
 					},
 				}, {
 					Name:        "create",
@@ -128,7 +93,12 @@ func main() {
 						},
 					},
 					Action: func(c *cli.Context) {
-						println("Creating broker: , ", c.String("name"))
+						service, err := createNobService(c)
+						if err != nil {
+							println("could not create broker:", err)
+							return
+						}
+						CreateBroker(service, c.String("name"))
 					},
 				}, {
 					Name:      "info",
@@ -142,7 +112,12 @@ func main() {
 						},
 					},
 					Action: func(c *cli.Context) {
-						println("Broker info: , ", c.String("id"))
+						service, err := createNobService(c)
+						if err != nil {
+							println("could not get broker info:", err)
+							return
+						}
+						BrokerInfo(service, c.String("id"))
 					},
 				},
 			},
