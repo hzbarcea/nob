@@ -85,20 +85,13 @@ func main() {
                     ShortName:   "c",
                     Usage:       "create a new broker",
                     Description: "Description of how to create a new broker",
-                    Flags: []cli.Flag{
-                        cli.StringFlag{
-                            Name: "name",
-                            //							Value: "",
-                            Usage: "Name of the new broker",
-                        },
-                    },
                     Action: func(c *cli.Context) {
                         service, err := createNobService(c)
                         if err != nil {
                             println("could not create broker:", err)
                             return
                         }
-                        CreateBroker(service, c.String("name"))
+                        CreateBroker(service)
                     },
                 }, {
                     Name:      "info",

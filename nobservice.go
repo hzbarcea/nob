@@ -12,10 +12,16 @@ type NobService struct {
     Username, Password string
 }
 
-func call(service NobService, method string, url string, reqBody io.Reader) string {
+var noHeaders = http.Header{ }
+var jsonCall = http.Header{
+    "Content-Type": { "application/json" },
+    "Accept": { "application/json"},
+}
+
+func call(service NobService, method string, url string, reqBody io.Reader, httpHeaders http.Header) string {
     fmt.Println("request:", method, url)
 
-    req, err := http.NewRequest("GET", url, reqBody)
+    req, err := http.NewRequest(method, url, reqBody)
     if err != nil {
         panic(err)
     }
@@ -24,10 +30,12 @@ func call(service NobService, method string, url string, reqBody io.Reader) stri
         fmt.Println("request: auth HTTP Basic as: ", service.Username)
         req.SetBasicAuth(service.Username, service.Password)
     }
-    if reqBody != nil {
-        req.Header.Set("Content-Type", "application/json")
+
+    for header, values := range httpHeaders {
+        for it := range values {
+            req.Header.Set(header, values[it])
+        }
     }
-    req.Header.Set("Accept", "application/json")
 
     fmt.Println("request: Headers:", req.Header)
 
@@ -56,17 +64,17 @@ func ListBrokers(service NobService, filter string) string {
         url += filter // hopefully the http object will encode it
     }
 
-    return call(service, "GET", url, nil)
+    return call(service, "GET", url, nil, jsonCall)
 }
 
-func CreateBroker(service NobService, name string) string {
-    url := service.Url + "/brokers?create=" + name
+func CreateBroker(service NobService) string {
+    url := service.Url + "/brokers?create"
 
-    return call(service, "POST", url, nil)
+    return call(service, "POST", url, nil, noHeaders)
 }
 
 func BrokerInfo(service NobService, id string) string {
     url := service.Url + "/broker/" + id
 
-    return call(service, "GET", url, nil)
+    return call(service, "GET", url, nil, jsonCall)
 }
