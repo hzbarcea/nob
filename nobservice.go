@@ -18,7 +18,7 @@ var jsonCall = http.Header{
     "Accept": { "application/json"},
 }
 
-func call(service NobService, method string, url string, reqBody io.Reader, httpHeaders http.Header) string {
+func (service NobService) call(method string, url string, reqBody io.Reader, httpHeaders http.Header) string {
     fmt.Println("request:", method, url)
 
     req, err := http.NewRequest(method, url, reqBody)
@@ -57,24 +57,24 @@ func call(service NobService, method string, url string, reqBody io.Reader, http
     return string(respBody)
 }
 
-func ListBrokers(service NobService, filter string) string {
+func (service NobService) ListBrokers(filter string) string {
     url := service.Url + "/brokers"
     if filter != "" {
         url += "?filter="
         url += filter // hopefully the http object will encode it
     }
 
-    return call(service, "GET", url, nil, jsonCall)
+    return service.call("GET", url, nil, jsonCall)
 }
 
-func CreateBroker(service NobService) string {
+func (service NobService) CreateBroker() string {
     url := service.Url + "/brokers?create"
 
-    return call(service, "POST", url, nil, noHeaders)
+    return service.call("POST", url, nil, noHeaders)
 }
 
-func BrokerInfo(service NobService, id string) string {
+func (service NobService) BrokerInfo(id string) string {
     url := service.Url + "/broker/" + id
 
-    return call(service, "GET", url, nil, jsonCall)
+    return service.call("GET", url, nil, jsonCall)
 }

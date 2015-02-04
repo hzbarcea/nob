@@ -78,7 +78,7 @@ func main() {
                             println("could not fetch broker list:", err)
                             return
                         }
-                        ListBrokers(service, c.String("filter"))
+                        service.ListBrokers(c.String("filter"))
                     },
                 }, {
                     Name:        "create",
@@ -91,7 +91,7 @@ func main() {
                             println("could not create broker:", err)
                             return
                         }
-                        CreateBroker(service)
+                        service.CreateBroker()
                     },
                 }, {
                     Name:      "info",
@@ -110,7 +110,7 @@ func main() {
                             println("could not get broker info:", err)
                             return
                         }
-                        BrokerInfo(service, c.String("id"))
+                        service.BrokerInfo(c.String("id"))
                     },
                 },
             },
