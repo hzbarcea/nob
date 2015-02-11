@@ -4,16 +4,24 @@ import (
     "fmt"
     "github.com/codegangsta/cli"
     "gopkg.in/yaml.v2"
+    "io"
     "io/ioutil"
-    "log"
     "os"
 )
 
 func createNobService(c *cli.Context) (NobService, error) {
+    var traceWriter io.Writer
+    if (c.GlobalBool("debug")) {
+        traceWriter = os.Stderr
+    } else {
+        traceWriter = ioutil.Discard
+    }
+    Init(traceWriter, os.Stderr, os.Stderr)
+
     configFile := c.GlobalString("config")
     contents, err := ioutil.ReadFile(configFile)
     if err != nil {
-        log.Fatalln("unable to read config file:", err)
+        ErrorLog.Fatalln("unable to read config file:", err)
         return NobService{}, err
     }
 
@@ -21,14 +29,14 @@ func createNobService(c *cli.Context) (NobService, error) {
     config = make(map[string]NobService)
     err = yaml.Unmarshal(contents, config)
     if err != nil {
-        log.Fatalln("cannot parse ", configFile, ":", err)
+        ErrorLog.Fatalln("cannot parse ", configFile, ":", err)
         return NobService{}, err
     }
 
     nob := c.GlobalString("nob")
     service := config[nob]
     if service.Url == "" {
-        log.Fatalln("no nob service '"+nob+"' defined in file ", configFile)
+        ErrorLog.Fatalln("no nob service '"+nob+"' defined in file ", configFile)
         return NobService{}, err
     }
 
@@ -52,6 +60,10 @@ func main() {
             Name:  "nob, n",
             Value: "",
             Usage: "nob service definition from the config file",
+        },
+        cli.BoolFlag{
+            Name:  "debug, d",
+            Usage: "show client debugging info",
         },
     }
     app.Commands = []cli.Command{

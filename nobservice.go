@@ -2,7 +2,6 @@ package main
 
 import (
     "encoding/json"
-    "fmt"
     "io"
     "io/ioutil"
     "net/http"
@@ -41,7 +40,7 @@ type brokerInfoResponse struct {
 
 
 func (service NobService) call(method string, url string, reqBody io.Reader, httpHeaders http.Header) string {
-    fmt.Println("request:", method, url)
+    TraceLog.Println("request:", method, url)
 
     req, err := http.NewRequest(method, url, reqBody)
     if err != nil {
@@ -49,7 +48,7 @@ func (service NobService) call(method string, url string, reqBody io.Reader, htt
     }
 
     if service.Username != "" {
-        fmt.Println("request: auth HTTP Basic as: ", service.Username)
+        TraceLog.Println("request: auth HTTP Basic as: ", service.Username)
         req.SetBasicAuth(service.Username, service.Password)
     }
 
@@ -59,7 +58,7 @@ func (service NobService) call(method string, url string, reqBody io.Reader, htt
         }
     }
 
-    fmt.Println("request: Headers:", req.Header)
+    TraceLog.Println("request: Headers:", req.Header)
 
     client := &http.Client{}
     resp, err := client.Do(req)
@@ -68,13 +67,13 @@ func (service NobService) call(method string, url string, reqBody io.Reader, htt
     }
     defer resp.Body.Close()
 
-    fmt.Println("response: Status:", resp.Status)
-    fmt.Println("response: Headers:", resp.Header)
+    TraceLog.Println("response: Status:", resp.Status)
+    TraceLog.Println("response: Headers:", resp.Header)
     respBody, err := ioutil.ReadAll(resp.Body)
     if err != nil {
         panic(err)
     }
-    fmt.Println("response: Body:", string(respBody))
+    TraceLog.Println("response: Body:", string(respBody))
 
     return string(respBody)
 }
