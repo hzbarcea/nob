@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
     "github.com/codegangsta/cli"
     "gopkg.in/yaml.v2"
     "io/ioutil"
@@ -78,7 +79,8 @@ func main() {
                             println("could not fetch broker list:", err)
                             return
                         }
-                        service.ListBrokers(c.String("filter"))
+                        brokerList := service.ListBrokers(c.String("filter"))
+                        fmt.Printf("%+v\n", brokerList)
                     },
                 }, {
                     Name:        "create",
@@ -110,7 +112,8 @@ func main() {
                             println("could not get broker info:", err)
                             return
                         }
-                        service.BrokerInfo(c.String("id"))
+                        brokerInfo := service.BrokerInfo(c.String("id"))
+                        fmt.Printf("%+v\n", brokerInfo)
                     },
                 },
             },

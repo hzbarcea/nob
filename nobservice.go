@@ -1,10 +1,12 @@
 package main
 
 import (
+    "encoding/json"
     "fmt"
     "io"
     "io/ioutil"
     "net/http"
+    "time"
 )
 
 type NobService struct {
@@ -17,6 +19,26 @@ var jsonCall = http.Header{
     "Content-Type": { "application/json" },
     "Accept": { "application/json"},
 }
+
+// Broker resource representation in activemq-nob-api
+type Broker struct {
+    Id                string
+    Name              string
+    Status            string
+    LastModifiedXbean time.Time
+}
+
+// used in parsing weirdly embedded json responses :D
+type brokerList struct {
+    BrokerList []Broker `json:"broker"`
+}
+type listBrokersResponse struct {
+    Brokers brokerList
+}
+type brokerInfoResponse struct {
+    Broker Broker
+}
+
 
 func (service NobService) call(method string, url string, reqBody io.Reader, httpHeaders http.Header) string {
     fmt.Println("request:", method, url)
@@ -57,24 +79,42 @@ func (service NobService) call(method string, url string, reqBody io.Reader, htt
     return string(respBody)
 }
 
-func (service NobService) ListBrokers(filter string) string {
+func (service NobService) ListBrokers(filter string) []Broker {
     url := service.Url + "/brokers"
     if filter != "" {
         url += "?filter="
         url += filter // hopefully the http object will encode it
     }
 
-    return service.call("GET", url, nil, jsonCall)
+    jsonString := service.call("GET", url, nil, jsonCall)
+
+    var brokerList listBrokersResponse
+    err := json.Unmarshal([]byte(jsonString), &brokerList)
+    if err != nil {
+        panic(err)
+    }
+
+    return brokerList.Brokers.BrokerList
+
 }
 
 func (service NobService) CreateBroker() string {
     url := service.Url + "/brokers?create"
 
-    return service.call("POST", url, nil, noHeaders)
+    brokerId := service.call("POST", url, nil, noHeaders)
+    return brokerId
 }
 
-func (service NobService) BrokerInfo(id string) string {
+func (service NobService) BrokerInfo(id string) Broker {
     url := service.Url + "/broker/" + id
 
-    return service.call("GET", url, nil, jsonCall)
+    jsonString := service.call("GET", url, nil, jsonCall)
+
+    var brokerInfo brokerInfoResponse
+    err := json.Unmarshal([]byte(jsonString), &brokerInfo)
+    if err != nil {
+        panic(err)
+    }
+
+    return brokerInfo.Broker
 }
